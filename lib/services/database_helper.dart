@@ -20,8 +20,9 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 3, // ව්‍යුහය නැවත යාවත්කාලීන කළ නිසා version එක 3 කළ යුතුය
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
     );
   }
 
@@ -55,15 +56,38 @@ class DatabaseHelper {
       )
     ''');
 
-    // 4. Labels Table
+    // 4. Note-Folders Connecting Table (അලුතින් එකතු කළා)
     await db.execute('''
-      CREATE TABLE labels (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        label_name TEXT NOT NULL
+      CREATE TABLE note_folders (
+        note_id INTEGER NOT NULL,
+        folder_id INTEGER NOT NULL,
+        PRIMARY KEY (note_id, folder_id),
+        FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE,
+        FOREIGN KEY (folder_id) REFERENCES folders (id) ON DELETE CASCADE
       )
     ''');
 
-    // 5. Checklist Items Table
+    // 5. Labels Table
+    await db.execute('''
+      CREATE TABLE labels (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        label_name TEXT NOT NULL,
+        label_color TEXT NOT NULL
+      )
+    ''');
+
+    // 6. Note-Labels Connecting Table
+    await db.execute('''
+      CREATE TABLE note_labels (
+        note_id INTEGER NOT NULL,
+        label_id INTEGER NOT NULL,
+        PRIMARY KEY (note_id, label_id),
+        FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE,
+        FOREIGN KEY (label_id) REFERENCES labels (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // 7. Checklist Items Table
     await db.execute('''
       CREATE TABLE checklist_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -75,22 +99,29 @@ class DatabaseHelper {
     ''');
   }
 
+  Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 3) {
+      await db.execute('DROP TABLE IF EXISTS note_folders');
+      await db.execute('DROP TABLE IF EXISTS note_labels');
+      await db.execute('DROP TABLE IF EXISTS folders');
+      await db.execute('DROP TABLE IF EXISTS labels');
+      await _createDB(db, newVersion);
+    }
+  }
+
   // --- CRUD Operations for Notes ---
 
-  // Note එකක් ඇතුළත් කිරීම (Insert)
   Future<int> insertNote(NoteModel note) async {
     final db = await instance.database;
     return await db.insert('notes', note.toMap());
   }
 
-  // සියලුම සටහන් ලබා ගැනීම (Read All)
   Future<List<NoteModel>> getAllNotes() async {
     final db = await instance.database;
     final result = await db.query('notes', orderBy: 'updated_at DESC');
     return result.map((json) => NoteModel.fromMap(json)).toList();
   }
 
-  // Note එකක් යාවත්කාලීන කිරීම (Update)
   Future<int> updateNote(NoteModel note) async {
     final db = await instance.database;
     return await db.update(
@@ -101,7 +132,6 @@ class DatabaseHelper {
     );
   }
 
-  // Note එකක් මැකීම (Delete)
   Future<int> deleteNote(int id) async {
     final db = await instance.database;
     return await db.delete(
@@ -111,7 +141,54 @@ class DatabaseHelper {
     );
   }
 
-  // Database එක වසා දැමීම
+  // --- Folder Operations (ਅලුතින් එකතු කළ මෙවලම්) ---
+
+  // 1. අලුත් Folder එකක් සෑදීම
+  Future<int> insertFolder(String folderName) async {
+    final db = await instance.database;
+    return await db.insert('folders', {'folder_name': folderName});
+  }
+
+  // 2. සියලුම Folders ලබා ගැනීම
+  Future<List<Map<String, dynamic>>> getAllFolders() async {
+    final db = await instance.database;
+    return await db.query('folders');
+  }
+
+  // 3. Note එකක් Folder එකකට ඇතුළත් කිරීම (Link Note with Folder)
+  Future<void> addNoteToFolder(int noteId, int folderId) async {
+    final db = await instance.database;
+    await db.insert(
+      'note_folders',
+      {'note_id': noteId, 'folder_id': folderId},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  // --- Label Operations ---
+
+  Future<int> insertLabel(String name, String color) async {
+    final db = await instance.database;
+    return await db.insert('labels', {
+      'label_name': name,
+      'label_color': color,
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getAllLabels() async {
+    final db = await instance.database;
+    return await db.query('labels');
+  }
+
+  Future<void> addLabelToNote(int noteId, int labelId) async {
+    final db = await instance.database;
+    await db.insert(
+      'note_labels',
+      {'note_id': noteId, 'label_id': labelId},
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+  }
+
   Future close() async {
     final db = await instance.database;
     db.close();
