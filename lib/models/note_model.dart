@@ -17,7 +17,6 @@ class NoteModel {
     required this.updatedAt,
   });
 
-
   factory NoteModel.fromMap(Map<String, dynamic> map) {
     return NoteModel(
       id: map['id'],
