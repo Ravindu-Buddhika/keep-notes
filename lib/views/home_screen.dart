@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/note_controller.dart';
 import '../widgets/note_card.dart';
-//import 'note_editor_screen.dart';
+import '../views/note_editor_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -106,6 +106,12 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.orangeAccent,
         onPressed: () {
           // Navigate to Note Editor Screen for creating a new note
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const NoteEditorScreen(),
+            ),
+          );
         },
         child: const Icon(Icons.add, color: Colors.black, size: 28),
       ),
