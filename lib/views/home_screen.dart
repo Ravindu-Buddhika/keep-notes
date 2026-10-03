@@ -4,6 +4,7 @@ import '../controller/note_controller.dart';
 import '../widgets/note_card.dart';
 import '../views/note_editor_screen.dart';
 import '../views/card_editor_screen.dart';
+import '../widgets/card_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -114,19 +115,29 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                           itemBuilder: (context, index) {
                             final note = noteController.notes[index];
-                            return NoteCard(
-                              note: note,
-                              onTap: () {
-                                // Navigate to Note Editor Screen with the selected note
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        NoteEditorScreen(note: note),
-                                  ),
-                                );
-                              },
-                            );
+
+
+                            if (note.aiSummary == 'card') {
+                              return CardCard(
+                                note: note,
+                                onTap: () {
+
+                                },
+                              );
+                            } else {
+                              return NoteCard(
+                                note: note,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          NoteEditorScreen(note: note),
+                                    ),
+                                  );
+                                },
+                              );
+                            }
                           },
                         );
                       },
@@ -214,13 +225,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           isDarkMode: isDarkMode,
                           onTap: () {
                             _toggleMenu();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const CardEditorScreen(),
-                                  ),
-                                );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const CardEditorScreen(),
+                              ),
+                            );
                           },
                         ),
                       ],
