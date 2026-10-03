@@ -7,7 +7,8 @@ class CardCard extends StatelessWidget {
   final NoteModel note;
   final VoidCallback onTap;
 
-  const CardCard({Key? key, required this.note, required this.onTap}) : super(key: key);
+  const CardCard({Key? key, required this.note, required this.onTap})
+    : super(key: key);
 
   Color _parseColor(String colorStr) {
     try {
@@ -20,8 +21,10 @@ class CardCard extends StatelessWidget {
   void _copyDetails(BuildContext context, String contentJson) {
     try {
       Map<String, dynamic> data = jsonDecode(contentJson);
-      String textToCopy = data.entries.map((e) => "${e.key}: ${e.value}").join("\n");
-      
+      String textToCopy = data.entries
+          .map((e) => "${e.key}: ${e.value}")
+          .join("\n");
+
       Clipboard.setData(ClipboardData(text: "📋 *${note.title}*\n$textToCopy"));
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Card details copied to clipboard!')),
@@ -45,15 +48,19 @@ class CardCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
+        // මෙන්න මෙතනින් Card එකේ උස සීමා කළ හැක (მაგ: max-height එකක් වගේ)
+        constraints: const BoxConstraints(
+          maxHeight: 160, // Card එක වැඩිපුර දිග වීම වළක්වයි
+        ),
         decoration: BoxDecoration(
           color: cardColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -68,28 +75,55 @@ class CardCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     note.title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 GestureDetector(
                   onTap: () => _copyDetails(context, note.content),
-                  child: const Icon(Icons.copy, size: 16, color: Colors.black54),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    child: const Icon(
+                      Icons.copy,
+                      size: 16,
+                      color: Colors.black54,
+                    ),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 6),
-            // Details list preview inside card
-            ...details.entries.take(3).map((entry) => Padding(
-              padding: const EdgeInsets.only(bottom: 2.0),
-              child: Text(
-                "${entry.key}: ${entry.value}",
-                style: const TextStyle(fontSize: 11, color: Colors.black54),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            const Divider(color: Colors.black26, height: 8, thickness: 0.8),
+            const SizedBox(height: 4),
+
+            // Card details items
+            Expanded(
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                children: details.entries
+                    .map(
+                      (entry) => Padding(
+                        padding: const EdgeInsets.only(bottom: 3.0),
+                        child: Text(
+                          "${entry.key}: ${entry.value}",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
-            )).toList(),
+            ),
           ],
         ),
       ),
