@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../controller/note_controller.dart';
 import '../widgets/note_card.dart';
 import '../views/note_editor_screen.dart';
+import '../views/card_editor_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -18,8 +19,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     // Fetch notes when the HomeScreen is initialized
-    Future.microtask(() =>
-      Provider.of<NoteController>(context, listen: false).fetchNotes()
+    Future.microtask(
+      () => Provider.of<NoteController>(context, listen: false).fetchNotes(),
     );
   }
 
@@ -40,7 +41,10 @@ class _HomeScreenState extends State<HomeScreen> {
           // 1. Main Home Screen Content
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 16.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -75,7 +79,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Consumer<NoteController>(
                       builder: (context, noteController, child) {
                         if (noteController.isLoading) {
-                          return const Center(child: CircularProgressIndicator(color: Colors.orange));
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.orange,
+                            ),
+                          );
                         }
 
                         if (noteController.notes.isEmpty) {
@@ -84,7 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               "No notes yet.",
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: isDarkMode ? Colors.white54 : Colors.black54, 
+                                color: isDarkMode
+                                    ? Colors.white54
+                                    : Colors.black54,
                                 fontSize: 14,
                               ),
                             ),
@@ -94,12 +104,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         // Display notes in a grid format
                         return GridView.builder(
                           itemCount: noteController.notes.length,
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2, // Number of columns in the grid
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.75,
-                          ),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount:
+                                    2, // Number of columns in the grid
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: 0.75,
+                              ),
                           itemBuilder: (context, index) {
                             final note = noteController.notes[index];
                             return NoteCard(
@@ -109,7 +121,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => NoteEditorScreen(note: note),
+                                    builder: (context) =>
+                                        NoteEditorScreen(note: note),
                                   ),
                                 );
                               },
@@ -129,7 +142,9 @@ class _HomeScreenState extends State<HomeScreen> {
             GestureDetector(
               onTap: _toggleMenu,
               child: Container(
-                color: (isDarkMode ? Colors.black : Colors.white).withOpacity(0.9),
+                color: (isDarkMode ? Colors.black : Colors.white).withOpacity(
+                  0.9,
+                ),
               ),
             ),
 
@@ -166,7 +181,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const NoteEditorScreen(),
+                                    builder: (context) =>
+                                        const NoteEditorScreen(),
                                   ),
                                 );
                               },
@@ -179,7 +195,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               isDarkMode: isDarkMode,
                               onTap: () {
                                 _toggleMenu();
-                                // TODO: Handle Checklist creation
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const CardEditorScreen(),
+                                  ),
+                                );
                               },
                             ),
                           ],
@@ -192,7 +214,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           isDarkMode: isDarkMode,
                           onTap: () {
                             _toggleMenu();
-                            // TODO: Handle Card creation
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const CardEditorScreen(),
+                                  ),
+                                );
                           },
                         ),
                       ],
@@ -203,14 +231,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
         ],
       ),
-      
-      // 4. Floating Action Button 
+
+      // 4. Floating Action Button
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.orangeAccent,
         onPressed: _toggleMenu,
         child: Icon(
-          _isMenuOpen ? Icons.close : Icons.add, 
-          color: Colors.black, 
+          _isMenuOpen ? Icons.close : Icons.add,
+          color: Colors.black,
           size: 28,
         ),
       ),
@@ -227,16 +255,14 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedColor: isDarkMode ? Colors.white : Colors.black,
         backgroundColor: Colors.transparent,
         labelStyle: TextStyle(
-          color: isSelected 
-              ? (isDarkMode ? Colors.black : Colors.white) 
+          color: isSelected
+              ? (isDarkMode ? Colors.black : Colors.white)
               : (isDarkMode ? Colors.white70 : Colors.black54),
           fontWeight: FontWeight.bold,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: isDarkMode ? Colors.white38 : Colors.black26,
-          ),
+          side: BorderSide(color: isDarkMode ? Colors.white38 : Colors.black26),
         ),
         onSelected: (bool selected) {},
       ),
