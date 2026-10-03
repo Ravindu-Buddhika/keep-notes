@@ -20,7 +20,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 3, // ව්‍යුහය නැවත යාවත්කාලීන කළ නිසා version එක 3 කළ යුතුය
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -35,6 +35,7 @@ class DatabaseHelper {
         content TEXT NOT NULL,
         color TEXT NOT NULL,
         ai_summary TEXT,
+        type TEXT NOT NULL DEFAULT 'note', -- 'note', 'card', 'checklist'
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       )
@@ -100,11 +101,14 @@ class DatabaseHelper {
   }
 
   Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 3) {
-      await db.execute('DROP TABLE IF EXISTS note_folders');
+    if (oldVersion < 4) {
       await db.execute('DROP TABLE IF EXISTS note_labels');
-      await db.execute('DROP TABLE IF EXISTS folders');
+      await db.execute('DROP TABLE IF EXISTS note_folders');
+      await db.execute('DROP TABLE IF EXISTS checklist_items');
       await db.execute('DROP TABLE IF EXISTS labels');
+      await db.execute('DROP TABLE IF EXISTS folders');
+      await db.execute('DROP TABLE IF EXISTS categories');
+      await db.execute('DROP TABLE IF EXISTS notes');
       await _createDB(db, newVersion);
     }
   }
@@ -134,11 +138,7 @@ class DatabaseHelper {
 
   Future<int> deleteNote(int id) async {
     final db = await instance.database;
-    return await db.delete(
-      'notes',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('notes', where: 'id = ?', whereArgs: [id]);
   }
 
   // --- Folder Operations (ਅලුතින් එකතු කළ මෙවලම්) ---
@@ -158,11 +158,10 @@ class DatabaseHelper {
   // 3. Note එකක් Folder එකකට ඇතුළත් කිරීම (Link Note with Folder)
   Future<void> addNoteToFolder(int noteId, int folderId) async {
     final db = await instance.database;
-    await db.insert(
-      'note_folders',
-      {'note_id': noteId, 'folder_id': folderId},
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('note_folders', {
+      'note_id': noteId,
+      'folder_id': folderId,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   // --- Label Operations ---
@@ -182,11 +181,10 @@ class DatabaseHelper {
 
   Future<void> addLabelToNote(int noteId, int labelId) async {
     final db = await instance.database;
-    await db.insert(
-      'note_labels',
-      {'note_id': noteId, 'label_id': labelId},
-      conflictAlgorithm: ConflictAlgorithm.ignore,
-    );
+    await db.insert('note_labels', {
+      'note_id': noteId,
+      'label_id': labelId,
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
   Future close() async {
